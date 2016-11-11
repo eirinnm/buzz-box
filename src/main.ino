@@ -21,7 +21,7 @@ void setup(){
     pinMode(volPin[i],OUTPUT);
     digitalWrite(volPin[i],HIGH);
   }
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.print(inputString);
   Serial.println("Ready.");
 }
@@ -29,7 +29,24 @@ void setup(){
 void loop(){
   //check for commands on the serial input
   if (stringComplete) {
-    Serial.println(inputString);
+    //Serial.println(inputString);
+    if(inputString=="on"){
+      //turn lights on
+      digitalWrite(lightPin,HIGH);
+      Serial.println("Lights on");
+    }else if(inputString=="off"){
+      digitalWrite(lightPin,LOW);
+      Serial.println("Lights off");
+    }
+    if(inputString.startsWith("F")){
+      inputString.remove(0,1);
+      char command[inputString.length()];
+      inputString.toCharArray(command, inputString.length()+1);
+      char *i;
+      char *len = strtok_r(command,",",&i);
+      flashNow(atoi(len));
+    }else if(inputString.startsWith("S")){
+      inputString.remove(0,1);
       char command[inputString.length()];
       inputString.toCharArray(command, inputString.length()+1);
       char *i;
@@ -45,6 +62,7 @@ void loop(){
         //schedule a tap
         playLater(atoi(wait),atoi(vol2),atoi(len2));
       }
+    }
     // clear the string:
     inputString = "";
     stringComplete = false;
@@ -65,7 +83,20 @@ void loop(){
   }
 }
 
+void flashNow(long len){
+  //if(digitalRead(lightPin)==HIGH)
+  Serial.print("Flashing for ");
+  Serial.print(len);
+  Serial.println(" ms.");
+  digitalWrite(lightPin, !digitalRead(lightPin));
+  digitalWrite(LED_BUILTIN,HIGH);
+  delay(len);
+  digitalWrite(lightPin, !digitalRead(lightPin));
+  digitalWrite(LED_BUILTIN,LOW);
+}
+
 void playNow(byte vol, long len){
+  setVolume(vol);
   Serial.print("Playing ");
   Serial.print(freq);
   Serial.print("Hz at volume ");
@@ -83,7 +114,11 @@ void playLater(unsigned long wait, byte vol, unsigned long len){
   volNext = vol;
   lenNext = len;
 }
-
+void setVolume(byte vol){
+  for(int i=0;i<3;i++){
+    digitalWrite(volPin[i],bitRead(vol,i));
+  }
+}
 void serialEvent() {
   while (Serial.available()) {
     // get the new byte:
@@ -93,6 +128,7 @@ void serialEvent() {
     if(inChar>0 && inChar<=127){ //filter out gibberish that I get at startup
       if (inChar == '\n') {
         stringComplete = true;
+        inputString.trim();
       }else{
         // add it to the inputString:
         inputString += inChar;
