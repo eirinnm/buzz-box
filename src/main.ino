@@ -1,12 +1,16 @@
-const byte volPin[3] = {2,4,7};
-const byte soundPin = 5;
-const byte lightPin = 3;
+#include <arduino.h>
+
+const byte volPin[2] = {2,4};
+const byte soundPin = 3;
+const byte lightPin = 5;
+const byte jumperPin = 11;
+const byte buttonPin = 12;
 bool isPlaying=false;
 bool buttonPlaying=false;
 unsigned long t;
 unsigned long playUntil=0;
 byte volNext;
-byte background_brightness = 255;
+byte background_brightness = 0;
 unsigned long startNext=0; //for scheduling another tap
 unsigned int lenNext;
 unsigned int freq=1000;
@@ -18,7 +22,9 @@ void setup(){
   pinMode(soundPin, OUTPUT);
   pinMode(lightPin, OUTPUT);
   pinMode(LED_BUILTIN,OUTPUT);
-  for(int i=0;i<3;i++){
+  pinMode(jumperPin, INPUT_PULLUP);
+  pinMode(buttonPin, INPUT_PULLUP);
+  for(int i=0;i<2;i++){
     pinMode(volPin[i],OUTPUT);
     digitalWrite(volPin[i],HIGH);
   }
@@ -94,6 +100,19 @@ void loop(){
       startNext=0;
     }
   }
+  //is the button being pressed?
+  if(!digitalRead(buttonPin)){
+    //is the jumper in place?
+    if(!digitalRead(jumperPin)){
+      //send an audio pulse at minimum volume
+      playNow(0,10);
+    }else{
+      //toggle the Lights
+      background_brightness = background_brightness ? 0 : 255;
+      setBrightness(background_brightness);
+    }
+    delay(8); //debouncing
+  }
 }
 
 void setBrightness(byte bright_val){
@@ -133,7 +152,7 @@ void playLater(unsigned long wait, byte vol, unsigned long len){
   lenNext = len;
 }
 void setVolume(byte vol){
-  for(int i=0;i<3;i++){
+  for(int i=0;i<2;i++){
     digitalWrite(volPin[i],bitRead(vol,i));
   }
 }
