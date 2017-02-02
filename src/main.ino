@@ -6,6 +6,7 @@ bool buttonPlaying=false;
 unsigned long t;
 unsigned long playUntil=0;
 byte volNext;
+byte background_brightness = 255;
 unsigned long startNext=0; //for scheduling another tap
 unsigned int lenNext;
 unsigned int freq=1000;
@@ -32,19 +33,31 @@ void loop(){
     //Serial.println(inputString);
     if(inputString=="on"){
       //turn lights on
-      digitalWrite(lightPin,HIGH);
-      Serial.println("Lights on");
+      background_brightness=255;
+      setBrightness(background_brightness);
     }else if(inputString=="off"){
-      digitalWrite(lightPin,LOW);
-      Serial.println("Lights off");
+      background_brightness=0;
+      setBrightness(background_brightness);
     }
-    if(inputString.startsWith("F")){
+    if(inputString.startsWith("B")){
+      //set the lights to a certain brightness
       inputString.remove(0,1);
       char command[inputString.length()];
       inputString.toCharArray(command, inputString.length()+1);
       char *i;
-      char *len = strtok_r(command,",",&i);
-      flashNow(atoi(len));
+      char *bright = strtok_r(command,",",&i);
+      background_brightness=atoi(bright);
+      setBrightness(atoi(bright));
+    }
+    if(inputString.startsWith("F")){
+      //set the lights to a certain brightness for x amount of time
+      inputString.remove(0,1);
+      char command[inputString.length()];
+      inputString.toCharArray(command, inputString.length()+1);
+      char *i;
+      char *bright = strtok_r(command,",",&i);
+      char *len = strtok_r(NULL,",",&i);
+      flashNow(atoi(bright),atoi(len));
     }else if(inputString.startsWith("S")){
       inputString.remove(0,1);
       char command[inputString.length()];
@@ -83,15 +96,20 @@ void loop(){
   }
 }
 
-void flashNow(long len){
-  //if(digitalRead(lightPin)==HIGH)
-  Serial.print("Flashing for ");
-  Serial.print(len);
-  Serial.println(" ms.");
-  digitalWrite(lightPin, !digitalRead(lightPin));
+void setBrightness(byte bright_val){
+  analogWrite(lightPin,bright_val);
+  Serial.print("Lights set to ");
+  Serial.println(bright_val);
+}
+
+void flashNow(byte bright_val, long len){
   digitalWrite(LED_BUILTIN,HIGH);
+  setBrightness(bright_val);
+  Serial.print("Waiting for ");
+  Serial.print(len);
+  Serial.println(" ms...");
   delay(len);
-  digitalWrite(lightPin, !digitalRead(lightPin));
+  setBrightness(background_brightness);
   digitalWrite(LED_BUILTIN,LOW);
 }
 
