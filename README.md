@@ -26,7 +26,8 @@ An LED can be connected to pin 13 and Gnd (with a resistor). It will turn on for
 Connect to the Arduino using UART at 115200 baud. Commands:
 
 * "on" / "off" - turn lights fully on or off.
-* B\<0-255\> - set lights to this brightness
-* F\<brightness\>,\<duration\> - set the lights to this brightness for a certain amount of time (ms)
-* S\<vol\>,\<duration\> - play a 1000Hz tone for this duration (ms). Volume is between 0 and 3.
+* B<0-255> - set lights to this brightness
+* F<brightness>,<duration> - set the lights to this brightness for a certain amount of time (ms)
+* S\<vol\>,\<duration\> - play a tone for this duration (ms)
 * S\<vol\>,\<duration\>,\<wait\>,\<vol2\>,\<duration2\> - send two audio pulses with a delay between them
+* H<freq> - set the freqency of future tones

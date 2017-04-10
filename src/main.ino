@@ -5,6 +5,7 @@ const byte soundPin = 3;
 const byte lightPin = 5;
 const byte jumperPin = 11;
 const byte buttonPin = 12;
+const byte solenoidPin = 6;
 bool isPlaying=false;
 bool buttonPlaying=false;
 unsigned long t;
@@ -13,7 +14,7 @@ byte volNext;
 byte background_brightness = 0;
 unsigned long startNext=0; //for scheduling another tap
 unsigned int lenNext;
-unsigned int freq=1000;
+unsigned int freq=200;
 //SerialEvent variables
 String inputString = "";         // a string to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
@@ -35,6 +36,8 @@ void setup(){
 
 void loop(){
   //check for commands on the serial input
+  //Serial.println(digitalRead(jumperPin));
+  //delay(1);
   if (stringComplete) {
     //Serial.println(inputString);
     if(inputString=="on"){
@@ -45,6 +48,18 @@ void loop(){
       background_brightness=0;
       setBrightness(background_brightness);
     }
+    if(inputString.startsWith("H")){
+      //set the frequency to some Hz
+      inputString.remove(0,1);
+      char command[inputString.length()];
+      inputString.toCharArray(command, inputString.length()+1);
+      char *i;
+      char *h = strtok_r(command,",",&i);
+      freq=atoi(h);
+      Serial.print("Frequency set to ");
+      Serial.print(h);
+    Serial.println("Hz");
+    }
     if(inputString.startsWith("B")){
       //set the lights to a certain brightness
       inputString.remove(0,1);
@@ -54,6 +69,16 @@ void loop(){
       char *bright = strtok_r(command,",",&i);
       background_brightness=atoi(bright);
       setBrightness(atoi(bright));
+    }
+    if(inputString.startsWith("T")){
+      //tap the solenoid for 50ms
+      inputString.remove(0,1);
+      char command[inputString.length()];
+      inputString.toCharArray(command, inputString.length()+1);
+      char *i;
+      char *strength = strtok_r(command,",",&i);
+      char *len = strtok_r(NULL,",",&i);
+      tapNow(atoi(strength),atoi(len));
     }
     if(inputString.startsWith("F")){
       //set the lights to a certain brightness for x amount of time
@@ -103,15 +128,16 @@ void loop(){
   //is the button being pressed?
   if(!digitalRead(buttonPin)){
     //is the jumper in place?
-    if(!digitalRead(jumperPin)){
+    if(digitalRead(jumperPin)){ //high if no jumper
       //send an audio pulse at minimum volume
       playNow(0,10);
+      delay(8); //debouncing
     }else{
       //toggle the Lights
       background_brightness = background_brightness ? 0 : 255;
       setBrightness(background_brightness);
+      delay(250); //debouncing
     }
-    delay(8); //debouncing
   }
 }
 
@@ -131,7 +157,17 @@ void flashNow(byte bright_val, long len){
   setBrightness(background_brightness);
   digitalWrite(LED_BUILTIN,LOW);
 }
-
+void tapNow(byte strength, long len){
+  digitalWrite(LED_BUILTIN,HIGH);
+  analogWrite(solenoidPin,strength);
+  Serial.print("Tapping for ");
+  Serial.print(len);
+  Serial.print(" ms at strength ");
+  Serial.println(strength);
+  delay(len);
+  analogWrite(solenoidPin,0);
+  digitalWrite(LED_BUILTIN,LOW);
+}
 void playNow(byte vol, long len){
   setVolume(vol);
   Serial.print("Playing ");
