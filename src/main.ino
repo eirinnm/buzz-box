@@ -169,7 +169,6 @@ void tapNow(byte strength, long len){
   digitalWrite(LED_BUILTIN,LOW);
 }
 void playNow(byte vol, long len){
-  setVolume(vol);
   Serial.print("Playing ");
   Serial.print(freq);
   Serial.print("Hz at volume ");
@@ -178,7 +177,11 @@ void playNow(byte vol, long len){
   Serial.print(len);
   Serial.println(" ms");
   digitalWrite(LED_BUILTIN,HIGH);
-  tone(soundPin,freq);
+
+  if(vol>0){
+    setVolume(vol);
+    tone(soundPin,freq);
+  }
   playUntil=millis()+len;
   isPlaying=true;
 }
@@ -188,8 +191,10 @@ void playLater(unsigned long wait, byte vol, unsigned long len){
   lenNext = len;
 }
 void setVolume(byte vol){
+  int trueVol = vol-1;
+  //the real volumes (for the TPA chip) are 0,1,2,3
   for(int i=0;i<2;i++){
-    digitalWrite(volPin[i],bitRead(vol,i));
+    digitalWrite(volPin[i],bitRead(trueVol,i));
   }
 }
 void serialEvent() {

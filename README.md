@@ -28,6 +28,6 @@ Connect to the Arduino using UART at 115200 baud. Commands:
 * "on" / "off" - turn lights fully on or off.
 * B<0-255> - set lights to this brightness
 * F<brightness>,<duration> - set the lights to this brightness for a certain amount of time (ms)
-* S\<vol\>,\<duration\> - play a tone for this duration (ms)
+* S\<vol\>,\<duration\> - play a tone for this duration (ms). Volumes are 0-4, where 0 is no sound.
 * S\<vol\>,\<duration\>,\<wait\>,\<vol2\>,\<duration2\> - send two audio pulses with a delay between them
 * H<freq> - set the freqency of future tones
