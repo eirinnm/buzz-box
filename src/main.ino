@@ -130,7 +130,7 @@ void loop(){
     //is the jumper in place?
     if(digitalRead(jumperPin)){ //high if no jumper
       //send an audio pulse at minimum volume
-      playNow(0,10);
+      playNow(1,10);
       delay(8); //debouncing
     }else{
       //toggle the Lights
