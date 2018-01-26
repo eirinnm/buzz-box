@@ -1,7 +1,8 @@
 #include <arduino.h>
 
 const byte volPin[2] = {2,4};
-const byte soundPin = 3;
+const byte lowVolumePin = 8; //low = half vol, high-Z = normal vol
+const byte soundPin = 9; //was 3
 const byte lightPin = 5;
 const byte jumperPin = 11;
 const byte buttonPin = 12;
@@ -115,6 +116,7 @@ void loop(){
   if(isPlaying){
     if(millis()>playUntil){
       noTone(soundPin);
+      digitalWrite(soundPin,LOW);
       digitalWrite(LED_BUILTIN,LOW);
       isPlaying=false;
     }
@@ -191,10 +193,20 @@ void playLater(unsigned long wait, byte vol, unsigned long len){
   lenNext = len;
 }
 void setVolume(byte vol){
-  int trueVol = vol-1;
+  //volume ranges from 0 (no sound) to 5
+  // the TPA gain settings achieve volumes 2-5
+  int tpaGain = vol-2;
+  if(vol>1){
+    //put the toggle pin into high-Z
+    pinMode(lowVolumePin, INPUT);
+  }else{
+    pinMode(lowVolumePin, OUTPUT);
+    digitalWrite(lowVolumePin, LOW);
+    tpaGain = 0;
+  }
   //the real volumes (for the TPA chip) are 0,1,2,3
   for(int i=0;i<2;i++){
-    digitalWrite(volPin[i],bitRead(trueVol,i));
+    digitalWrite(volPin[i],bitRead(tpaGain,i));
   }
 }
 void serialEvent() {
